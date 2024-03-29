@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using URabbitMQ.Web1.Context;
 using URabbitMQ.Web1.Services;
+using URabbitMQ.Web1.Services.Pubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +29,7 @@ builder.Services.AddSingleton(sp =>
 );
 
 builder.Services.AddSingleton<RabbitMQClientService>();
-
+builder.Services.AddSingleton<RabbitMQPublisher>();
 #endregion
 var app = builder.Build();
 
