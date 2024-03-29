@@ -1,16 +1,35 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client;
 using URabbitMQ.Web1.Context;
+using URabbitMQ.Web1.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// db
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseInMemoryDatabase(databaseName:"ProductDb");
 });
 
+
+#region connection fac
+var rabbitMQService = builder.Configuration.GetConnectionString("RabbitMQ");
+
+builder.Services.AddSingleton(sp =>
+
+    new ConnectionFactory()
+    {
+        Uri = new Uri(rabbitMQService)
+    }
+);
+
+builder.Services.AddSingleton<RabbitMQClientService>();
+
+#endregion
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
