@@ -11,7 +11,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase(databaseName:"ProductDb");
 });
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
