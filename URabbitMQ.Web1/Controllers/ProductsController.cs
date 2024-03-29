@@ -2,16 +2,21 @@
 using Microsoft.EntityFrameworkCore;
 using URabbitMQ.Web1.Context;
 using URabbitMQ.Web1.Models;
+using URabbitMQ.Web1.Services.Events;
+using URabbitMQ.Web1.Services.Pubs;
 
 namespace URabbitMQ.Web1.Controllers
 {
     public class ProductsController : Controller
     {
         private readonly AppDbContext _context;
-
-        public ProductsController(AppDbContext context)
+        private readonly RabbitMQPublisher _rabbitMQPublisher;
+        private readonly IWebHostEnvironment _environment;
+        public ProductsController(AppDbContext context, RabbitMQPublisher rabbitMQPublisher, IWebHostEnvironment environment)
         {
             _context = context;
+            _rabbitMQPublisher = rabbitMQPublisher;
+            _environment = environment;
         }
 
         // GET: Products
@@ -51,15 +56,44 @@ namespace URabbitMQ.Web1.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Name,Price,AvailableStock,PictureUrl")] Product product)
+        public async Task<IActionResult> Create(
+            [Bind("Name,Price,AvailableStock")] Product product,IFormFile imageFile)
         {
-            if (ModelState.IsValid)
+            // data modeli uygu değilse dön
+           if (!ModelState.IsValid) return View(product);
+
+            try
             {
+                string randomImageName = string.Empty;
+
+                if (imageFile is { Length: > 0 })
+                {
+                    //random isim oluştur
+                    randomImageName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
+                    //Images klasör path ini al
+                    var path = Path.Combine(_environment.WebRootPath, "Images",randomImageName);
+                   // path = Path.Combine(path, randomImageName);
+                    //ilgili yol için filestream i oluştur
+                    await using FileStream fileStream = new(path: path, FileMode.Create,FileAccess.ReadWrite);
+                    // ve bunu kaydet
+                    await imageFile.CopyToAsync(fileStream);
+
+                    // kopyalamadan rabbit i haberdar et
+                    _rabbitMQPublisher.Publish(new ProductImagesCreatedEvent() { ImageName = randomImageName });
+                }
+
+                // db ye ürünü kaydet
+                product.ImageName = randomImageName;
                 _context.Add(product);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
             }
-            return View(product);
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);  
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Products/Edit/5
