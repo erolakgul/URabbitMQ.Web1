@@ -18,7 +18,8 @@ builder.Services.AddSingleton(sp =>
 
     new ConnectionFactory()
     {
-        Uri = new Uri(rabbitMQService)
+        Uri = new Uri(rabbitMQService),
+        DispatchConsumersAsync = true  // ImageWaterMarkProcessBackgroundServices içinde execute => consumer AsyncEventingBasicConsumer asenkron methoduyla çaðýrýldýðý için 
     }
 );
 

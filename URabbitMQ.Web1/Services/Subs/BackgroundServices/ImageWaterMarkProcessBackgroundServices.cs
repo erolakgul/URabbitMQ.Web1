@@ -70,8 +70,10 @@ namespace URabbitMQ.Web1.Services.Subs.BackgroundServices
 
                               // yazdırma işlemini başlat
                               graphic.DrawString(s: textToPrint, font: font, brush: brush, point: position);
+                              // yeni klasör yolunu aldırt.
+                              var newPath = Path.Combine(_environment.WebRootPath, "Images", "WaterMarks", productImageCreatedEvent.ImageName);
                               // yeni görseli kaydet
-                              img.Save(filename: "/WaterMarks" + productImageCreatedEvent.ImageName);
+                              img.Save(filename: newPath);
 
                               //dispose et
                               img.Dispose();
