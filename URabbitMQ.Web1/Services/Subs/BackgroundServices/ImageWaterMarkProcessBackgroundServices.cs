@@ -46,6 +46,8 @@ namespace URabbitMQ.Web1.Services.Subs.BackgroundServices
                       {
                           try
                           {
+                              //Task.Delay(5000).Wait();
+                              
                               var receivedByteData = Encoding.UTF8.GetString(evnt.Body.ToArray());
                               var productImageCreatedEvent = JsonSerializer.Deserialize<ProductImagesCreatedEvent>(receivedByteData);
 
