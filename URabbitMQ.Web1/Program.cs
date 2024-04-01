@@ -4,18 +4,12 @@ using RabbitMQ.Client;
 using URabbitMQ.Web1.Context;
 using URabbitMQ.Web1.Services;
 using URabbitMQ.Web1.Services.Pubs;
+using URabbitMQ.Web1.Services.Subs.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
-// db
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseInMemoryDatabase(databaseName:"ProductDb");
-});
-
 
 #region connection fac
 var rabbitMQService = builder.Configuration.GetConnectionString("RabbitMQ");
@@ -31,6 +25,19 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddSingleton<RabbitMQClientService>();
 builder.Services.AddSingleton<RabbitMQPublisher>();
 #endregion
+
+#region db in memory
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+options.UseInMemoryDatabase(databaseName: "ProductDb");
+}); 
+#endregion
+
+#region background service di a register edilir
+builder.Services.AddHostedService<ImageWaterMarkProcessBackgroundServices>();
+#endregion
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
